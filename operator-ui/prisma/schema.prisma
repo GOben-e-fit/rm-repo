@@ -1,0 +1,81 @@
+// Prisma schema for rm-ki-operator-ui
+// Phase 1: Tenants, Users, Memberships, AuditEvents (read-mostly)
+// RLS wird über Postgres-Policies pro Connection-Role aktiviert (siehe runbooks/db-rls.md).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id              String       @id @default(cuid())
+  slug            String       @unique
+  name            String
+  domain          String       @unique
+  brandingConfig  Json         @default("{}")
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  memberships     Membership[]
+  auditEvents     AuditEvent[]
+
+  @@index([isActive])
+}
+
+model User {
+  id          String       @id @default(cuid())
+  externalId  String       @unique // Keycloak sub
+  email       String       @unique
+  name        String?
+  isOperator  Boolean      @default(false) // Cross-Tenant-Rolle
+  createdAt   DateTime     @default(now())
+  memberships Membership[]
+  auditEvents AuditEvent[]
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([userId])
+  @@index([tenantId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model AuditEvent {
+  id                String           @id @default(cuid())
+  tenantId          String?
+  userId            String?
+  action            String
+  target            String?
+  before            Json?
+  after             Json?
+  approvalRequestId String?
+  status            AuditEventStatus @default(SUCCESS)
+  createdAt         DateTime         @default(now())
+  tenant            Tenant?          @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  user              User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([action, createdAt])
+}
+
+enum AuditEventStatus {
+  SUCCESS
+  FAILED
+  PENDING
+}

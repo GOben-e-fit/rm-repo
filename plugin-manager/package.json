@@ -1,0 +1,42 @@
+{
+  "name": "rm-ki-plugin-manager",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Zentraler MCP-Hub für die RM-KI-Plattform: registriert MCP-Server, brückt OpenAPI-Tools für OpenWebUI, erzwingt Approval-Gates, liefert Single-Audit-Trail nach OpenSearch + paperclip-evidence-bridge.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@hono/zod-validator": "^0.4.0",
+    "@modelcontextprotocol/sdk": "^1.17.0",
+    "@prisma/client": "^6.0.0",
+    "hono": "^4.7.0",
+    "ofetch": "^1.4.0",
+    "pino": "^9.5.0",
+    "pino-pretty": "^13.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/node": "^22.10.0",
+    "prisma": "^6.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

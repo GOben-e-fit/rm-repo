@@ -1,0 +1,23 @@
+{
+  "name": "rm-repo",
+  "version": "0.0.1",
+  "private": true,
+  "description": "RM-KI-Plattform Monorepo: Operator-UI (Next.js) + Plugin-Manager (Hono). Akte 13 — Frontend Platform UI.",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev:ui": "pnpm --filter rm-ki-operator-ui dev",
+    "dev:plugin": "pnpm --filter rm-ki-plugin-manager dev",
+    "build:all": "pnpm --recursive --parallel build",
+    "lint:all": "pnpm --recursive --parallel lint",
+    "test:all": "pnpm --recursive --parallel test",
+    "typecheck:all": "pnpm --recursive --parallel typecheck",
+    "db:generate": "pnpm --recursive --parallel db:generate"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4"
+  }
+}

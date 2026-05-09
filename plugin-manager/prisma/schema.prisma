@@ -1,0 +1,139 @@
+// rm-ki-plugin-manager schema
+// Phase 2: McpServer, McpTool, ToolInvocation, ApprovalRequest, AuditLog, FallbackMapping
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model McpServer {
+  id          String           @id @default(cuid())
+  slug        String           @unique
+  name        String
+  transport   McpTransport     @default(STDIO)
+  endpoint    String
+  authConfig  Json             @default("{}")
+  isActive    Boolean          @default(true)
+  tenantScope TenantScope      @default(GLOBAL)
+  tenantIds   String[]         @default([])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  tools       McpTool[]
+  invocations ToolInvocation[]
+
+  @@index([isActive, tenantScope])
+}
+
+enum McpTransport {
+  STDIO
+  HTTP
+  WEBSOCKET
+}
+
+enum TenantScope {
+  GLOBAL
+  PER_TENANT
+  WHITELIST
+}
+
+model McpTool {
+  id                String           @id @default(cuid())
+  serverId          String
+  name              String
+  description       String?
+  inputSchema       Json
+  requiresApproval  Boolean          @default(false)
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  server            McpServer        @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  invocations       ToolInvocation[]
+
+  @@unique([serverId, name])
+  @@index([requiresApproval])
+}
+
+model ToolInvocation {
+  id                String              @id @default(cuid())
+  serverId          String
+  toolId            String?
+  toolName          String
+  tenantId          String
+  userId            String
+  args              Json
+  result            Json?
+  status            InvocationStatus    @default(PENDING)
+  approvalRequestId String?             @unique
+  startedAt         DateTime            @default(now())
+  finishedAt        DateTime?
+  errorMessage      String?
+  server            McpServer           @relation(fields: [serverId], references: [id], onDelete: Restrict)
+  tool              McpTool?            @relation(fields: [toolId], references: [id], onDelete: SetNull)
+  approvalRequest   ApprovalRequest?    @relation(fields: [approvalRequestId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, startedAt])
+  @@index([toolName, startedAt])
+  @@index([status])
+}
+
+enum InvocationStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  REJECTED
+  EXPIRED
+  FALLBACK_TO_DIFY
+}
+
+model ApprovalRequest {
+  id          String           @id @default(cuid())
+  toolName    String
+  args        Json
+  tenantId    String
+  requestedBy String
+  reviewedBy  String?
+  status      ApprovalStatus   @default(PENDING)
+  reason      String?
+  createdAt   DateTime         @default(now())
+  decidedAt   DateTime?
+  expiresAt   DateTime
+  invocation  ToolInvocation?
+
+  @@index([tenantId, status])
+  @@index([status, expiresAt])
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  userId    String?
+  event     String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([event, createdAt])
+}
+
+model FallbackMapping {
+  id              String   @id @default(cuid())
+  toolName        String
+  tenantId        String?
+  difyWorkflowId  String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  @@unique([toolName, tenantId])
+  @@index([isActive])
+}

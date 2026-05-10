@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KPI Enterprise Mining - API Console</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #071013;
+      --panel: #0e1c21;
+      --line: rgba(190, 220, 214, .16);
+      --text: #eef8f5;
+      --muted: #9fb4ae;
+      --green: #5fe0b6;
+      --blue: #78a8ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #071013;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1.5rem;
+      display: grid;
+      gap: 1rem;
+    }
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 1rem;
+    }
+    h1 { margin: 0; font-size: clamp(1.8rem, 4vw, 3.2rem); line-height: 1; }
+    p { margin: .35rem 0 0; color: var(--muted); line-height: 1.5; }
+    a { color: inherit; }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: .65rem;
+      background: var(--panel);
+      padding: 1rem;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(12rem, 1fr) minmax(10rem, .45fr) auto;
+      gap: .75rem;
+      align-items: end;
+    }
+    label {
+      display: grid;
+      gap: .35rem;
+      color: var(--muted);
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+    select, input, button {
+      min-height: 2.75rem;
+      border: 1px solid var(--line);
+      border-radius: .5rem;
+      background: #09161a;
+      color: var(--text);
+      padding: .65rem .75rem;
+      font: inherit;
+    }
+    button {
+      background: var(--green);
+      color: #061012;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    pre {
+      margin: 0;
+      min-height: 24rem;
+      overflow: auto;
+      border-radius: .55rem;
+      border: 1px solid var(--line);
+      padding: 1rem;
+      background: #040b0d;
+      color: #dcefe9;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .55rem;
+    }
+    .links a {
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: .5rem;
+      padding: .6rem .75rem;
+      background: rgba(255,255,255,.04);
+    }
+    @media (max-width: 760px) {
+      header, .controls { grid-template-columns: 1fr; display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p>KPI Enterprise Mining</p>
+        <h1>API Console</h1>
+        <p>Tenant-aware smoke console for static fallback endpoints and the agent orchestrator proxy.</p>
+      </div>
+      <div class="links" aria-label="Console links">
+        <a href="/">Cockpit</a>
+        <a href="/enterprise/">Enterprise</a>
+        <a href="/tools.html">Tools</a>
+        <a href="/openapi.json">OpenAPI</a>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="controls">
+        <label>
+          Endpoint
+          <select id="endpoint">
+            <option value="/api/health">/api/health</option>
+            <option value="/api/v1/tenants">/api/v1/tenants</option>
+            <option value="/api/v1/sources">/api/v1/sources</option>
+            <option value="/api/v1/datasets">/api/v1/datasets</option>
+            <option value="/api/v1/metric-definitions">/api/v1/metric-definitions</option>
+            <option value="/api/v1/kpi-observations">/api/v1/kpi-observations</option>
+            <option value="/api/v1/kpi-candidates">/api/v1/kpi-candidates</option>
+            <option value="/api/v1/driver-trees">/api/v1/driver-trees</option>
+            <option value="/api/v1/okr-links">/api/v1/okr-links</option>
+            <option value="/api/v1/insights">/api/v1/insights</option>
+            <option value="/api/v1/briefings">/api/v1/briefings</option>
+            <option value="/api/v1/agent-runs">/api/v1/agent-runs</option>
+            <option value="/api/v1/evidence">/api/v1/evidence</option>
+            <option value="/api/v1/benchmarks">/api/v1/benchmarks</option>
+            <option value="/api/v1/webhooks">/api/v1/webhooks</option>
+          </select>
+        </label>
+        <label>
+          Tenant
+          <input id="tenant" value="demo-ceo-office" autocomplete="off">
+        </label>
+        <button id="run" type="button">Fetch</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <pre id="output">Choose an endpoint and fetch.</pre>
+    </section>
+  </main>
+
+  <script>
+    const endpoint = document.getElementById('endpoint');
+    const tenant = document.getElementById('tenant');
+    const output = document.getElementById('output');
+    const run = document.getElementById('run');
+
+    async function fetchEndpoint() {
+      const url = endpoint.value;
+      output.textContent = `GET ${url}\n\nLoading...`;
+      try {
+        const res = await fetch(url, {
+          headers: {
+            'Accept': 'application/json',
+            'X-Tenant-Id': tenant.value.trim() || 'demo-ceo-office'
+          }
+        });
+        const text = await res.text();
+        try {
+          output.textContent = JSON.stringify(JSON.parse(text), null, 2);
+        } catch {
+          output.textContent = text;
+        }
+      } catch (error) {
+        output.textContent = `Request failed: ${error.message}`;
+      }
+    }
+
+    run.addEventListener('click', fetchEndpoint);
+    fetchEndpoint();
+  </script>
+</body>
+</html>

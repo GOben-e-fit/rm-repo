@@ -1,0 +1,17 @@
+{
+  "schema_version": "kpi.okr_links.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "okr_id": "okr-2026-profitable-growth",
+      "objective": "Increase profitable growth without weakening cash position",
+      "key_results": [
+        { "kr": "NRR above 108%", "metric_id": "net_revenue_retention" },
+        { "kr": "Gross margin above 45.5%", "metric_id": "gross_margin" },
+        { "kr": "Cash conversion below 42 days", "metric_id": "cash_conversion_cycle" }
+      ],
+      "owner": "CEO Office"
+    }
+  ]
+}

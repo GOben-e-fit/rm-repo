@@ -1,0 +1,31 @@
+{
+  "schema_version": "kpi.evidence.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "evidence_id": "ev-margin-001",
+      "type": "metric_reconciliation",
+      "title": "Gross margin reconciliation against ERP revenue and COGS",
+      "uri": "minio://kpi-demo/evidence/ev-margin-001.json",
+      "tenant_scoped": true,
+      "hash": "sha256-demo-margin-001"
+    },
+    {
+      "evidence_id": "ev-contract-014",
+      "type": "contract_sample",
+      "title": "Enterprise discount exception sample",
+      "uri": "minio://kpi-demo/evidence/ev-contract-014.json",
+      "tenant_scoped": true,
+      "hash": "sha256-demo-contract-014"
+    },
+    {
+      "evidence_id": "ev-ar-002",
+      "type": "source_rows",
+      "title": "Accounts receivable aging source rows",
+      "uri": "minio://kpi-demo/evidence/ev-ar-002.json",
+      "tenant_scoped": true,
+      "hash": "sha256-demo-ar-002"
+    }
+  ]
+}

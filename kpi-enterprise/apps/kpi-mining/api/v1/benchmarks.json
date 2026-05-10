@@ -1,0 +1,23 @@
+{
+  "schema_version": "kpi.benchmarks.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "benchmark_id": "bm-nrr-saas-midmarket",
+      "name": "SaaS mid-market NRR peer band",
+      "metric_id": "net_revenue_retention",
+      "source_type": "curated_market_feed",
+      "provenance_required": true,
+      "status": "planned"
+    },
+    {
+      "benchmark_id": "bm-margin-service-mix",
+      "name": "Service and product margin mix benchmark",
+      "metric_id": "gross_margin",
+      "source_type": "customer_private_peer_group",
+      "provenance_required": true,
+      "status": "planned"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "kpi.briefings.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "briefing_id": "briefing-ceo-daily-2026-05-09",
+      "audience": "CEO/CFO/COO",
+      "title": "Daily performance briefing",
+      "questions": {
+        "what_happened": "NRR is above target, but gross margin and cash conversion require action.",
+        "why": "Price leakage, supplier variance and delayed acceptance are the dominant drivers.",
+        "what_to_do": "Approve price leakage review, supplier renegotiation and invoice correction workflow.",
+        "owner": "CFO Office and COO Office",
+        "evidence": ["ev-margin-001", "ev-ar-002"]
+      },
+      "approval_state": "needs_review"
+    }
+  ]
+}

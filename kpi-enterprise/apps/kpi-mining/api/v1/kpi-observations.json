@@ -1,0 +1,35 @@
+{
+  "schema_version": "kpi.observations.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "period": "2026-04",
+  "items": [
+    {
+      "metric_id": "net_revenue_retention",
+      "period": "2026-04",
+      "value": 1.118,
+      "display": "111.8%",
+      "target": 1.08,
+      "status": "above_target",
+      "confidence": 0.93
+    },
+    {
+      "metric_id": "gross_margin",
+      "period": "2026-04",
+      "value": 0.426,
+      "display": "42.6%",
+      "target": 0.455,
+      "status": "below_target",
+      "confidence": 0.88
+    },
+    {
+      "metric_id": "cash_conversion_cycle",
+      "period": "2026-04",
+      "value": 49,
+      "display": "49 days",
+      "target": 42,
+      "status": "attention",
+      "confidence": 0.86
+    }
+  ]
+}

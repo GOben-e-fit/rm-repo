@@ -1,0 +1,31 @@
+{
+  "schema_version": "kpi.datasets.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "dataset_id": "ds-gold-kpi-timeseries",
+      "name": "Gold KPI Time Series",
+      "tier": "gold",
+      "engine": "clickhouse",
+      "grain": "metric_id, tenant_id, period",
+      "lineage_status": "tracked"
+    },
+    {
+      "dataset_id": "ds-silver-finance",
+      "name": "Silver Finance Facts",
+      "tier": "silver",
+      "engine": "trino",
+      "grain": "transaction_id",
+      "lineage_status": "tracked"
+    },
+    {
+      "dataset_id": "ds-bronze-market",
+      "name": "Bronze Market Evidence",
+      "tier": "bronze",
+      "engine": "minio",
+      "grain": "artifact_id",
+      "lineage_status": "pending"
+    }
+  ]
+}

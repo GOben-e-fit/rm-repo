@@ -1,0 +1,30 @@
+{
+  "schema_version": "kpi.driver_trees.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "tree_id": "tree-ebitda-quality",
+      "title": "EBITDA Quality Driver Tree",
+      "root_metric": "adjusted_ebitda",
+      "status": "active",
+      "items": [
+        "Revenue quality -> retention, expansion, pricing discipline",
+        "Gross margin -> COGS variance, supplier mix, service utilization",
+        "Operating leverage -> hiring plan, support load, automation rate",
+        "Working capital -> DSO, DPO, inventory days"
+      ]
+    },
+    {
+      "tree_id": "tree-cash-conversion",
+      "title": "Cash Conversion Driver Tree",
+      "root_metric": "cash_conversion_cycle",
+      "status": "draft",
+      "items": [
+        "DSO -> invoice accuracy, payment terms, collection backlog",
+        "DIO -> stock turns, supplier lead time, forecast error",
+        "DPO -> payment policy, supplier terms, cash discount tradeoff"
+      ]
+    }
+  ]
+}

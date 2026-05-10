@@ -1,0 +1,39 @@
+{
+  "schema_version": "kpi.sources.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "source_id": "src-airbyte-erp",
+      "name": "ERP Finance",
+      "type": "airbyte",
+      "status": "configured",
+      "data_class": "confidential",
+      "landing_zone": "minio://kpi-demo/bronze/erp/"
+    },
+    {
+      "source_id": "src-crawl4ai-market",
+      "name": "Market and competitor evidence",
+      "type": "crawl4ai",
+      "status": "planned",
+      "data_class": "public",
+      "landing_zone": "minio://kpi-demo/bronze/market/"
+    },
+    {
+      "source_id": "src-nimble-pricing",
+      "name": "Pricing benchmark feeds",
+      "type": "nimble",
+      "status": "planned",
+      "data_class": "internal",
+      "landing_zone": "minio://kpi-demo/bronze/benchmarks/"
+    },
+    {
+      "source_id": "src-upload-boardpack",
+      "name": "Board pack uploads",
+      "type": "upload",
+      "status": "ready",
+      "data_class": "restricted",
+      "landing_zone": "minio://kpi-demo/bronze/uploads/"
+    }
+  ]
+}

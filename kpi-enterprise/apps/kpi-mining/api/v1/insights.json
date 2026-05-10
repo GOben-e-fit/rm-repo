@@ -1,0 +1,23 @@
+{
+  "schema_version": "kpi.insights.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "insight_id": "insight-margin-price-leakage",
+      "title": "Gross margin pressure is concentrated in enterprise discounts",
+      "severity": "high",
+      "summary": "Discount variance explains roughly half of the gross margin gap; supplier cost variance explains another third.",
+      "confidence": 0.84,
+      "evidence_ids": ["ev-margin-001", "ev-contract-014"]
+    },
+    {
+      "insight_id": "insight-cash-dso",
+      "title": "Cash conversion deterioration is led by DSO in two regions",
+      "severity": "medium",
+      "summary": "Invoice corrections and delayed acceptance criteria increased DSO in DACH and UK enterprise cohorts.",
+      "confidence": 0.79,
+      "evidence_ids": ["ev-ar-002", "ev-project-009"]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "kpi.webhooks.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "webhook_id": "wh-agent-run-completed",
+      "event": "agent_run.completed",
+      "target": "n8n://kpi-agent-run-router",
+      "status": "disabled_demo",
+      "requires_approval": true
+    },
+    {
+      "webhook_id": "wh-briefing-approved",
+      "event": "briefing.approved",
+      "target": "teams://executive-briefing-channel",
+      "status": "disabled_demo",
+      "requires_approval": true
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": "kpi.tenants.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "tenant_id": "demo-ceo-office",
+      "name": "Demo CEO Office",
+      "domain": "kpi.ben-e-fit.ai",
+      "policy": {
+        "sensitive_model_route": "local-qwen",
+        "external_model_default": "deny_for_sensitive",
+        "cross_tenant_access": "deny"
+      },
+      "roles": ["executive", "analyst", "operator", "auditor"]
+    }
+  ]
+}

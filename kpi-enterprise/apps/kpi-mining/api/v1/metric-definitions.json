@@ -1,0 +1,55 @@
+{
+  "schema_version": "kpi.metric_definitions.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "metric_id": "net_revenue_retention",
+      "name": "Net Revenue Retention",
+      "owner": "CFO Office",
+      "value": "111.8%",
+      "delta": "+3.4 pp",
+      "formula": "(starting_arr + expansion_arr - contraction_arr - churn_arr) / starting_arr",
+      "grain": "month",
+      "status": "governed",
+      "data_class": "confidential",
+      "lineage": ["billing.subscriptions", "crm.accounts", "contracts.terms"]
+    },
+    {
+      "metric_id": "gross_margin",
+      "name": "Gross Margin",
+      "owner": "CFO Office",
+      "value": "42.6%",
+      "delta": "-1.8 pp",
+      "formula": "(net_revenue - cost_of_goods_sold) / net_revenue",
+      "grain": "month",
+      "status": "review",
+      "data_class": "confidential",
+      "lineage": ["erp.revenue", "erp.cogs", "procurement.spend"]
+    },
+    {
+      "metric_id": "cash_conversion_cycle",
+      "name": "Cash Conversion Cycle",
+      "owner": "COO Office",
+      "value": "49 days",
+      "delta": "+6 days",
+      "formula": "DIO + DSO - DPO",
+      "grain": "month",
+      "status": "governed",
+      "data_class": "confidential",
+      "lineage": ["erp.ar", "erp.ap", "inventory.stock"]
+    },
+    {
+      "metric_id": "onboarding_cycle_time",
+      "name": "Customer Onboarding Cycle Time",
+      "owner": "COO Office",
+      "value": "18.4 days",
+      "delta": "-2.1 days",
+      "formula": "avg(go_live_at - contract_signed_at)",
+      "grain": "week",
+      "status": "candidate",
+      "data_class": "internal",
+      "lineage": ["crm.opportunities", "project.tasks", "support.tickets"]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "service": "kpi-enterprise-mining",
+  "version": "1.0.0-dev",
+  "mode": "static-plus-agent-proxy",
+  "tenant_required": true,
+  "agent_proxy": "agents-orchestrator:8000",
+  "routes": ["/", "/enterprise/", "/console.html", "/tools.html", "/openapi.json", "/api/v1"]
+}

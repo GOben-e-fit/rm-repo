@@ -1,0 +1,366 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "KPI Enterprise Mining API",
+    "version": "1.0.0-dev",
+    "description": "Public v1 API contract for tenant-aware KPI discovery, metric governance, driver trees, insights, briefings, agent runs and evidence."
+  },
+  "servers": [
+    {
+      "url": "https://kpi.ben-e-fit.ai",
+      "description": "Canonical production domain"
+    },
+    {
+      "url": "https://kpi.medialine.app",
+      "description": "Operator and showcase domain"
+    },
+    {
+      "url": "http://localhost",
+      "description": "Local container"
+    }
+  ],
+  "security": [
+    {
+      "tenantHeader": []
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Runtime health",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Runtime status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tenants": {
+      "get": {
+        "summary": "List tenant records visible to the caller",
+        "operationId": "listTenants",
+        "responses": {
+          "200": {
+            "description": "Tenant list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sources": {
+      "get": {
+        "summary": "List configured source connectors",
+        "operationId": "listSources",
+        "responses": {
+          "200": {
+            "description": "Source connector list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets": {
+      "get": {
+        "summary": "List governed datasets",
+        "operationId": "listDatasets",
+        "responses": {
+          "200": {
+            "description": "Dataset list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/metric-definitions": {
+      "get": {
+        "summary": "List metric definitions and contract state",
+        "operationId": "listMetricDefinitions",
+        "responses": {
+          "200": {
+            "description": "Metric definitions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create or propose a governed metric definition",
+        "operationId": "createMetricDefinition",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetricDefinition"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Metric proposal accepted for validation"
+          }
+        }
+      }
+    },
+    "/api/v1/kpi-observations": {
+      "get": {
+        "summary": "List KPI time-series observations",
+        "operationId": "listKpiObservations",
+        "responses": {
+          "200": {
+            "description": "KPI observations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kpi-candidates": {
+      "get": {
+        "summary": "List discovered KPI candidates",
+        "operationId": "listKpiCandidates",
+        "responses": {
+          "200": {
+            "description": "KPI candidates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/driver-trees": {
+      "get": {
+        "summary": "List driver tree definitions",
+        "operationId": "listDriverTrees",
+        "responses": {
+          "200": {
+            "description": "Driver trees",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/okr-links": {
+      "get": {
+        "summary": "List OKR to metric lineage links",
+        "operationId": "listOkrLinks",
+        "responses": {
+          "200": {
+            "description": "OKR links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/insights": {
+      "get": {
+        "summary": "List generated KPI insights",
+        "operationId": "listInsights",
+        "responses": {
+          "200": {
+            "description": "Insight list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/briefings": {
+      "get": {
+        "summary": "List C-Level briefings",
+        "operationId": "listBriefings",
+        "responses": {
+          "200": {
+            "description": "Briefing list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agent-runs": {
+      "get": {
+        "summary": "List agent execution runs and audit state",
+        "operationId": "listAgentRuns",
+        "responses": {
+          "200": {
+            "description": "Agent run list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evidence": {
+      "get": {
+        "summary": "List evidence artifacts",
+        "operationId": "listEvidence",
+        "responses": {
+          "200": {
+            "description": "Evidence list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/benchmarks": {
+      "get": {
+        "summary": "List benchmark references",
+        "operationId": "listBenchmarks",
+        "responses": {
+          "200": {
+            "description": "Benchmark list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/webhooks": {
+      "get": {
+        "summary": "List webhook subscriptions",
+        "operationId": "listWebhooks",
+        "responses": {
+          "200": {
+            "description": "Webhook list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "tenantHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Tenant-Id"
+      }
+    },
+    "schemas": {
+      "Health": {
+        "type": "object",
+        "required": ["status", "service", "version"],
+        "properties": {
+          "status": { "type": "string" },
+          "service": { "type": "string" },
+          "version": { "type": "string" },
+          "mode": { "type": "string" }
+        }
+      },
+      "ListResponse": {
+        "type": "object",
+        "required": ["schema_version", "tenant_id", "items"],
+        "properties": {
+          "schema_version": { "type": "string" },
+          "tenant_id": { "type": "string" },
+          "generated_at": { "type": "string", "format": "date-time" },
+          "items": {
+            "type": "array",
+            "items": { "type": "object", "additionalProperties": true }
+          }
+        }
+      },
+      "MetricDefinition": {
+        "type": "object",
+        "required": ["metric_id", "name", "owner", "formula", "grain", "tenant_id"],
+        "properties": {
+          "metric_id": { "type": "string" },
+          "name": { "type": "string" },
+          "owner": { "type": "string" },
+          "formula": { "type": "string" },
+          "grain": { "type": "string" },
+          "tenant_id": { "type": "string" },
+          "data_class": { "type": "string" },
+          "lineage_refs": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

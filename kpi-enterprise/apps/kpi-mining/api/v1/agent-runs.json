@@ -1,0 +1,37 @@
+{
+  "schema_version": "kpi.agent_runs.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "run_id": "run-kpi-miner-20260509-001",
+      "agent": "KPI Miner",
+      "status": "completed",
+      "model_route": "local-qwen",
+      "prompt_version": "kpi-miner.v1.0",
+      "evalset_id": "kpi-discovery-golden-v1",
+      "trace_id": "lf-kpi-demo-0001",
+      "outputs": ["cand-price-leakage-rate", "cand-onboarding-risk"]
+    },
+    {
+      "run_id": "run-rca-20260509-002",
+      "agent": "Anomaly/RCA Agent",
+      "status": "needs_approval",
+      "model_route": "local-qwen",
+      "prompt_version": "rca.v1.0",
+      "evalset_id": "rca-margin-v1",
+      "trace_id": "lf-kpi-demo-0002",
+      "outputs": ["insight-margin-price-leakage"]
+    },
+    {
+      "run_id": "run-briefing-20260509-003",
+      "agent": "C-Level Briefing Agent",
+      "status": "draft",
+      "model_route": "local-qwen",
+      "prompt_version": "briefing.v1.0",
+      "evalset_id": "executive-briefing-v1",
+      "trace_id": "lf-kpi-demo-0003",
+      "outputs": ["briefing-ceo-daily-2026-05-09"]
+    }
+  ]
+}

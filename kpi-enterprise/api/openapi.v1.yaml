@@ -1,0 +1,951 @@
+openapi: 3.1.0
+info:
+  title: KPI Enterprise Mining API
+  version: 1.0.0
+  description: |
+    Public API v1 für KPI Enterprise Mining. Kanonische Quelle: `ARCHITECTURE-v2.md §3.4`.
+
+    **Auth:** Keycloak-JWT (Bearer). Pflichtclaim `tenant_id`. Der API-Gateway
+    (`api-gateway:4001`) verifiziert den JWT, extrahiert den Tenant und injiziert
+    `app.tenant` in alle Datenbankverbindungen (Postgres RLS, Trino, ClickHouse).
+
+    **Tenant-Filter:** Alle Endpunkte mit `tenant_id`-Filter sind automatisch auf
+    den JWT-Tenant beschränkt. Cross-Tenant-Zugriffe werden vom Gateway abgewiesen.
+
+    **Versionierung:** SemVer. Breaking Changes nur als neue Major-Version (`/v2`).
+
+    **Idempotenz:** Schreibende Endpunkte unterstützen `Idempotency-Key` Header.
+
+  contact:
+    name: KPI Enterprise Mining Platform
+    email: platform@medialine.app
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.ben-e-fit.ai/v1
+    description: Production (Canonical)
+  - url: https://api.medialine.app/v1
+    description: Operator/Showcase
+  - url: https://api.ki-guru.com/v1
+    description: Sister-Tenant
+tags:
+  - name: tenants
+    description: Tenant-Verwaltung (Platform-Admin)
+  - name: sources
+    description: Datenquellen-Connectoren
+  - name: datasets
+    description: Verzeichnete Datensätze
+  - name: metrics
+    description: Metric Contracts und KPI-Kandidaten
+  - name: kpis
+    description: KPI-Zeitreihen
+  - name: trees
+    description: Driver-Trees
+  - name: okrs
+    description: OKR-Lineage
+  - name: insights
+    description: Anomaly + RCA Output
+  - name: briefings
+    description: C-Level Briefings
+  - name: agents
+    description: Agent-Run-Audit
+  - name: benchmarks
+    description: Externe Benchmarks
+  - name: webhooks
+    description: Outbound Webhooks
+  - name: system
+    description: Health/Ready
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [system]
+      summary: Liveness
+      security: []
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+
+  /ready:
+    get:
+      tags: [system]
+      summary: Readiness
+      security: []
+      responses:
+        '200': { description: ready }
+        '503': { description: not ready }
+
+  /tenants:
+    get:
+      tags: [tenants]
+      summary: Liste aller Tenants (Platform-Admin)
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Tenant' }
+    post:
+      tags: [tenants]
+      summary: Tenant anlegen (Onboarding-Wizard, Platform-Admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TenantCreate' }
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Tenant' }
+
+  /tenants/{tenantId}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      tags: [tenants]
+      summary: Tenant-Detail
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Tenant' }
+    patch:
+      tags: [tenants]
+      summary: Tenant-Update
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TenantUpdate' }
+      responses:
+        '200': { description: updated }
+    delete:
+      tags: [tenants]
+      summary: Tenant-Offboarding (synchronisiert mit Keycloak/MinIO/CH/PG)
+      responses:
+        '202': { description: deletion enqueued }
+
+  /sources:
+    get:
+      tags: [sources]
+      summary: Datenquellen
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Source' }
+    post:
+      tags: [sources]
+      summary: Datenquelle anlegen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SourceCreate' }
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Source' }
+
+  /sources/{sourceId}/sync:
+    parameters:
+      - name: sourceId
+        in: path
+        required: true
+        schema: { type: string }
+    post:
+      tags: [sources]
+      summary: Manueller Sync triggern
+      responses:
+        '202':
+          description: queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AgentRunRef' }
+
+  /datasets:
+    get:
+      tags: [datasets]
+      summary: Verzeichnete Datensätze (aus OpenMetadata)
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Dataset' }
+
+  /datasets/{datasetId}/profile:
+    parameters:
+      - name: datasetId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [datasets]
+      summary: Spalten-Profil
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DatasetProfile' }
+
+  /metric-definitions:
+    get:
+      tags: [metrics]
+      summary: Liste der Metric Contracts (aktive Versionen)
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MetricDefinition' }
+    post:
+      tags: [metrics]
+      summary: Metric Contract neu anlegen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MetricDefinitionCreate' }
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MetricDefinition' }
+
+  /metric-definitions/{metricId}/versions:
+    parameters:
+      - name: metricId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [metrics]
+      summary: Vertrags-Versionen
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MetricDefinition' }
+
+  /kpi-candidates:
+    get:
+      tags: [metrics]
+      summary: KPI-Kandidaten (Discovery-Output)
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/KpiCandidate' }
+    post:
+      tags: [metrics]
+      summary: Discovery-Run anstoßen
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DiscoveryRunRequest' }
+      responses:
+        '202':
+          description: queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AgentRunRef' }
+
+  /kpi-candidates/{candidateId}/promote:
+    parameters:
+      - name: candidateId
+        in: path
+        required: true
+        schema: { type: string }
+    post:
+      tags: [metrics]
+      summary: Kandidat zu Metric Contract promoten (HITL Approval Pflicht)
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PromoteRequest' }
+      responses:
+        '201':
+          description: promoted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MetricDefinition' }
+
+  /kpi-observations:
+    get:
+      tags: [kpis]
+      summary: Zeitreihe einer Metric
+      parameters:
+        - name: metric_id
+          in: query
+          required: true
+          schema: { type: string }
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/KpiObservation' }
+
+  /driver-trees:
+    get:
+      tags: [trees]
+      summary: Driver-Trees auflisten
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/DriverTree' }
+    post:
+      tags: [trees]
+      summary: Driver-Tree anlegen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DriverTreeCreate' }
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DriverTree' }
+
+  /driver-trees/{treeId}/nodes:
+    parameters:
+      - name: treeId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [trees]
+      summary: Knoten
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/DriverNode' }
+    post:
+      tags: [trees]
+      summary: Knoten hinzufügen
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DriverNode' }
+      responses:
+        '201': { description: created }
+
+  /driver-trees/{treeId}/edges:
+    parameters:
+      - name: treeId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [trees]
+      summary: Kanten
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/DriverEdge' }
+    post:
+      tags: [trees]
+      summary: Kante hinzufügen
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DriverEdge' }
+      responses:
+        '201': { description: created }
+
+  /okr-links:
+    get:
+      tags: [okrs]
+      summary: KPI ↔ OKR-Verknüpfungen
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/OkrLink' }
+    post:
+      tags: [okrs]
+      summary: Verknüpfung anlegen
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OkrLink' }
+      responses:
+        '201': { description: created }
+
+  /insights:
+    get:
+      tags: [insights]
+      summary: Anomaly + RCA Outputs
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [info, warn, critical]
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Insight' }
+
+  /briefings:
+    get:
+      tags: [briefings]
+      summary: Briefing-Runs
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Briefing' }
+    post:
+      tags: [briefings]
+      summary: Briefing erzeugen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BriefingCreate' }
+      responses:
+        '202':
+          description: queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AgentRunRef' }
+
+  /briefings/{briefingId}:
+    parameters:
+      - name: briefingId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [briefings]
+      summary: Briefing-Detail (Markdown + PDF Link)
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Briefing' }
+
+  /agent-runs:
+    get:
+      tags: [agents]
+      summary: Agent-Run-Liste (Audit)
+      parameters:
+        - name: agent
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [queued, running, succeeded, failed, blocked]
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AgentRun' }
+
+  /agent-runs/{runId}:
+    parameters:
+      - name: runId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [agents]
+      summary: Agent-Run-Detail (Trace + Evidence)
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AgentRun' }
+
+  /evidence/{evidenceId}:
+    parameters:
+      - name: evidenceId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [agents]
+      summary: Evidence-Bundle (signed URL → MinIO)
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EvidenceBundle' }
+
+  /benchmarks:
+    get:
+      tags: [benchmarks]
+      summary: Im Tenant verfügbare externe Benchmarks
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Benchmark' }
+
+  /webhooks:
+    get:
+      tags: [webhooks]
+      summary: Outbound-Webhooks
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Webhook' }
+    post:
+      tags: [webhooks]
+      summary: Webhook anlegen
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Webhook' }
+      responses:
+        '201': { description: created }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TenantId:
+      name: tenantId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^tnt_[a-z0-9]{4,32}$'
+
+  schemas:
+    Health:
+      type: object
+      properties:
+        status: { type: string, enum: [ok, degraded] }
+        version: { type: string }
+        uptime_seconds: { type: integer }
+      required: [status]
+
+    Tenant:
+      type: object
+      properties:
+        id: { type: string, pattern: '^tnt_[a-z0-9]{4,32}$' }
+        slug: { type: string }
+        display_name: { type: string }
+        brand:
+          type: string
+          enum: [ben-e-fit, medialine, ki-guru, custom]
+        keycloak_realm: { type: string }
+        data_classification_default:
+          type: string
+          enum: [public, internal, confidential, pii]
+        external_llm_allowed: { type: boolean, default: false }
+        created_at: { type: string, format: date-time }
+      required: [id, slug, display_name, brand, keycloak_realm]
+
+    TenantCreate:
+      type: object
+      properties:
+        slug: { type: string }
+        display_name: { type: string }
+        brand: { type: string, enum: [ben-e-fit, medialine, ki-guru, custom] }
+        admin_email: { type: string, format: email }
+        external_llm_allowed: { type: boolean, default: false }
+      required: [slug, display_name, brand, admin_email]
+
+    TenantUpdate:
+      type: object
+      properties:
+        display_name: { type: string }
+        brand: { type: string, enum: [ben-e-fit, medialine, ki-guru, custom] }
+        external_llm_allowed: { type: boolean }
+
+    Source:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [airbyte, upload, rest, crawl4ai, nimble] }
+        name: { type: string }
+        config: { type: object }
+        last_sync: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [healthy, degraded, failed, unknown] }
+      required: [id, type, name]
+
+    SourceCreate:
+      type: object
+      properties:
+        type: { type: string }
+        name: { type: string }
+        config: { type: object }
+      required: [type, name]
+
+    Dataset:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        catalog_uri: { type: string, description: 'OpenMetadata FQN' }
+        owner: { type: string }
+        row_count_estimate: { type: integer }
+        sensitivity:
+          type: string
+          enum: [public, internal, confidential, pii]
+      required: [id, name, catalog_uri]
+
+    DatasetProfile:
+      type: object
+      properties:
+        dataset_id: { type: string }
+        columns:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              type: { type: string }
+              null_ratio: { type: number }
+              distinct_count: { type: integer }
+              sample_values: { type: array, items: { type: string } }
+              detected_pii: { type: boolean }
+      required: [dataset_id, columns]
+
+    MetricDefinition:
+      type: object
+      properties:
+        id: { type: string }
+        version: { type: integer }
+        tenant_id: { type: string }
+        name: { type: string }
+        display_name: { type: string }
+        description: { type: string }
+        owner: { type: string }
+        domain: { type: string }
+        unit: { type: string }
+        granularity:
+          type: string
+          enum: [minute, hour, day, week, month, quarter, year]
+        direction:
+          type: string
+          enum: [up_is_favorable, down_is_favorable, neutral]
+        dbt_model: { type: string }
+        expression: { type: string }
+        filter: { type: string, nullable: true }
+        target:
+          type: object
+          properties:
+            value: { type: number }
+            tolerance_pct: { type: number }
+        data_classification:
+          type: string
+          enum: [public, internal, confidential, pii]
+        compliance_tags:
+          type: array
+          items: { type: string }
+        refresh_cron: { type: string }
+        anomaly:
+          type: object
+          properties:
+            method: { type: string, enum: [stl_zscore, robust_z, prophet_residual, isolation_forest] }
+            threshold: { type: number }
+        created_at: { type: string, format: date-time }
+        git_ref: { type: string }
+      required: [id, version, name, owner, domain, unit, granularity, direction]
+
+    MetricDefinitionCreate:
+      allOf:
+        - $ref: '#/components/schemas/MetricDefinition'
+
+    KpiCandidate:
+      type: object
+      properties:
+        id: { type: string }
+        proposed_name: { type: string }
+        score: { type: number, minimum: 0, maximum: 1 }
+        rationale: { type: string }
+        source_dataset_id: { type: string }
+        proposed_sql: { type: string }
+        suggested_unit: { type: string }
+        suggested_granularity: { type: string }
+        status:
+          type: string
+          enum: [new, in_review, accepted, rejected]
+      required: [id, proposed_name, score, source_dataset_id]
+
+    DiscoveryRunRequest:
+      type: object
+      properties:
+        dataset_ids:
+          type: array
+          items: { type: string }
+        scope_hint: { type: string, description: 'Domain hint, e.g. finance' }
+      required: [dataset_ids]
+
+    PromoteRequest:
+      type: object
+      properties:
+        approver: { type: string }
+        approval_note: { type: string }
+        target_metric_name: { type: string }
+      required: [approver]
+
+    KpiObservation:
+      type: object
+      properties:
+        metric_id: { type: string }
+        metric_version: { type: integer }
+        ts: { type: string, format: date-time }
+        value: { type: number }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+      required: [metric_id, ts, value]
+
+    DriverTree:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        owner: { type: string }
+        node_count: { type: integer }
+        edge_count: { type: integer }
+        updated_at: { type: string, format: date-time }
+      required: [id, name, owner]
+
+    DriverTreeCreate:
+      type: object
+      properties:
+        name: { type: string }
+        owner: { type: string }
+      required: [name, owner]
+
+    DriverNode:
+      type: object
+      properties:
+        id: { type: string }
+        metric_id: { type: string }
+        label: { type: string }
+        position:
+          type: object
+          properties: { x: { type: number }, y: { type: number } }
+      required: [id, label]
+
+    DriverEdge:
+      type: object
+      properties:
+        id: { type: string }
+        from_node: { type: string }
+        to_node: { type: string }
+        weight: { type: number }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        rationale: { type: string }
+      required: [id, from_node, to_node]
+
+    OkrLink:
+      type: object
+      properties:
+        id: { type: string }
+        objective: { type: string }
+        key_result: { type: string }
+        metric_id: { type: string }
+        action_template_id: { type: string, nullable: true }
+      required: [id, objective, key_result, metric_id]
+
+    Insight:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [anomaly, trend_break, threshold, rca] }
+        metric_id: { type: string }
+        severity: { type: string, enum: [info, warn, critical] }
+        what_happened: { type: string }
+        why_hypothesis: { type: string }
+        what_to_do:
+          type: array
+          items:
+            type: object
+            properties:
+              action_template: { type: string }
+              expected_impact: { type: string }
+        owner: { type: string }
+        evidence_id: { type: string }
+        created_at: { type: string, format: date-time }
+      required: [id, type, metric_id, severity, what_happened]
+
+    Briefing:
+      type: object
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [daily, weekly, monthly, ad_hoc] }
+        audience: { type: string, enum: [cfo, ceo, coo, controller, all] }
+        status: { type: string, enum: [queued, generating, ready, delivered, failed] }
+        markdown_url: { type: string }
+        pdf_url: { type: string }
+        signed_pdf_url: { type: string, nullable: true }
+        delivered_to:
+          type: array
+          items: { type: string }
+        created_at: { type: string, format: date-time }
+      required: [id, type, audience, status]
+
+    BriefingCreate:
+      type: object
+      properties:
+        type: { type: string, enum: [daily, weekly, monthly, ad_hoc] }
+        audience: { type: string, enum: [cfo, ceo, coo, controller, all] }
+        scope:
+          type: object
+          properties:
+            kpi_ids: { type: array, items: { type: string } }
+            include_benchmarks: { type: boolean }
+        delivery:
+          type: array
+          items: { type: string, enum: [email, slack, teams, documenso] }
+      required: [type, audience]
+
+    AgentRunRef:
+      type: object
+      properties:
+        run_id: { type: string }
+        status: { type: string }
+        trace_url: { type: string }
+      required: [run_id, status]
+
+    AgentRun:
+      type: object
+      properties:
+        run_id: { type: string }
+        tenant_id: { type: string }
+        agent: { type: string }
+        status: { type: string, enum: [queued, running, succeeded, failed, blocked] }
+        started_at: { type: string, format: date-time }
+        ended_at: { type: string, format: date-time, nullable: true }
+        tools_used:
+          type: array
+          items: { type: string }
+        llm_calls:
+          type: array
+          items:
+            type: object
+            properties:
+              model: { type: string }
+              tokens_in: { type: integer }
+              tokens_out: { type: integer }
+              cost_eur: { type: number }
+              external: { type: boolean }
+        evidence_bundle: { type: string }
+        approval:
+          type: object
+          properties:
+            required: { type: boolean }
+            approvers: { type: array, items: { type: string } }
+            granted: { type: boolean }
+        rollback_snapshot: { type: string, nullable: true }
+      required: [run_id, tenant_id, agent, status]
+
+    EvidenceBundle:
+      type: object
+      properties:
+        id: { type: string }
+        run_id: { type: string }
+        signed_url: { type: string }
+        expires_at: { type: string, format: date-time }
+        sha256: { type: string }
+      required: [id, run_id, signed_url, expires_at]
+
+    Benchmark:
+      type: object
+      properties:
+        id: { type: string }
+        metric_name: { type: string }
+        source: { type: string }
+        license: { type: string }
+        reference_value: { type: number }
+        reference_period: { type: string }
+        last_fetched_at: { type: string, format: date-time }
+      required: [id, metric_name, source]
+
+    Webhook:
+      type: object
+      properties:
+        id: { type: string }
+        url: { type: string, format: uri }
+        events:
+          type: array
+          items: { type: string, enum: [insight.created, briefing.delivered, agent_run.completed, action.applied] }
+        secret_ref: { type: string, description: 'Pfad/Alias des Secret-Keys (kein Klartext)' }
+        active: { type: boolean }
+      required: [id, url, events]

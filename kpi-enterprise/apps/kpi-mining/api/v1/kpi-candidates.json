@@ -1,0 +1,23 @@
+{
+  "schema_version": "kpi.candidates.v1",
+  "tenant_id": "demo-ceo-office",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "items": [
+    {
+      "candidate_id": "cand-price-leakage-rate",
+      "name": "Price Leakage Rate",
+      "source_fields": ["invoice.discount_amount", "contract.target_discount", "crm.segment"],
+      "business_question": "How much margin is lost through uncontrolled discounting?",
+      "confidence": 0.82,
+      "next_action": "review_formula"
+    },
+    {
+      "candidate_id": "cand-onboarding-risk",
+      "name": "Onboarding Risk Score",
+      "source_fields": ["project.due_date", "ticket.severity", "customer.arr"],
+      "business_question": "Which customers threaten expansion or renewal because onboarding is delayed?",
+      "confidence": 0.78,
+      "next_action": "owner_approval"
+    }
+  ]
+}

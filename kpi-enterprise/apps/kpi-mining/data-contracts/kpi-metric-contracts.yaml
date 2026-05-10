@@ -1,0 +1,118 @@
+version: 1
+product: kpi-enterprise-mining
+contract_namespace: kpi.metric_contracts.v1
+default_tenant_policy:
+  require_tenant_id: true
+  require_owner: true
+  require_lineage: true
+  external_model_default: deny_for_sensitive
+required_fields:
+  - metric_id
+  - name
+  - owner
+  - formula
+  - grain
+  - dimensions
+  - source_systems
+  - data_class
+  - tenant_scope
+  - lineage_refs
+  - reconciliation_tests
+  - evidence_policy
+metrics:
+  - metric_id: net_revenue_retention
+    name: Net Revenue Retention
+    owner: cfo-office
+    formula: "(starting_arr + expansion_arr - contraction_arr - churn_arr) / starting_arr"
+    grain: month
+    dimensions:
+      - tenant_id
+      - customer_segment
+      - region
+    source_systems:
+      - billing
+      - crm
+      - contracts
+    data_class: confidential
+    tenant_scope: strict
+    lineage_refs:
+      - openmetadata://kpi/billing/subscriptions
+      - openmetadata://kpi/crm/accounts
+    reconciliation_tests:
+      - id: nrr_starting_arr_nonzero
+        type: not_null_and_gt_zero
+        field: starting_arr
+      - id: nrr_bounds_review
+        type: range_warn
+        min: 0.0
+        max: 2.0
+    evidence_policy:
+      require_source_rows: true
+      require_formula_version: true
+      require_agent_trace: true
+  - metric_id: gross_margin
+    name: Gross Margin
+    owner: cfo-office
+    formula: "(net_revenue - cost_of_goods_sold) / net_revenue"
+    grain: month
+    dimensions:
+      - tenant_id
+      - business_unit
+      - product_line
+    source_systems:
+      - erp
+      - billing
+      - procurement
+    data_class: confidential
+    tenant_scope: strict
+    lineage_refs:
+      - openmetadata://kpi/erp/revenue
+      - openmetadata://kpi/erp/cogs
+    reconciliation_tests:
+      - id: margin_revenue_matches_gl
+        type: reconciliation
+        left: billing.net_revenue
+        right: erp.gl_revenue
+        tolerance: 0.005
+      - id: margin_bounds_review
+        type: range_warn
+        min: -0.2
+        max: 0.9
+    evidence_policy:
+      require_source_rows: true
+      require_formula_version: true
+      require_agent_trace: true
+  - metric_id: cash_conversion_cycle
+    name: Cash Conversion Cycle
+    owner: coo-office
+    formula: "days_inventory_outstanding + days_sales_outstanding - days_payable_outstanding"
+    grain: month
+    dimensions:
+      - tenant_id
+      - business_unit
+      - region
+    source_systems:
+      - erp
+      - inventory
+      - accounts_receivable
+      - accounts_payable
+    data_class: confidential
+    tenant_scope: strict
+    lineage_refs:
+      - openmetadata://kpi/erp/ar
+      - openmetadata://kpi/erp/ap
+      - openmetadata://kpi/inventory/stock
+    reconciliation_tests:
+      - id: ccc_days_non_negative
+        type: range_error
+        min: 0
+        max: 365
+      - id: ccc_gl_reconciliation
+        type: reconciliation
+        left: erp.working_capital_snapshot
+        right: kpi.gold_cash_conversion
+        tolerance: 0.01
+    evidence_policy:
+      require_source_rows: true
+      require_formula_version: true
+      require_agent_trace: true

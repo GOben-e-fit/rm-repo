@@ -1,11 +1,7 @@
-# kpi-enterprise
+# 14-kpi-enterprise-mining
 
-Kanonische Solution für **KPI Enterprise Mining** als mandantenfähiges
+Kanonische Akte für **KPI Enterprise Mining** als mandantenfähiges
 C-Level Performance Operating System auf der DGX-Plattform.
-
-Mirror der lokalen Akte `project-launchpad/14-kpi-enterprise-mining/` plus
-v1-Cockpit-Implementierung (`apps/kpi-mining/`), Compose-Override
-(`infra/compose/`) und KPI-Skills (`skills/`).
 
 Stand: 2026-05-10 (Spec-Bundle v2 materialisiert; CP-099 → CP-103 vorbereitend)
 
@@ -75,3 +71,16 @@ Codex-Skills unter `C:\Users\info\.codex\skills\`:
   spezifiziert, geplant ab CP-104.
 - v3: Autonome Agenten, Benchmarks, Action-Workflows — spezifiziert,
   geplant ab CP-110.
+
+## Implementiert (lokal lauffähig)
+
+- `agents/orchestrator/` — FastAPI-Skelett mit allen v1-Routen,
+  In-Memory-Tenant-Store, Demo-Auth via `X-Tenant-Id`. Tests:
+  17/17 grün (smoke + tenant-deny).
+  `pytest -v` aus dem Verzeichnis.
+- `contracts/metric-contracts/` — JSON-Schema + 5 Beispiel-Contracts
+  (MRR, Cash Runway, NPS, Sales Cycle, Order Backlog) + Validator-Skript.
+- `infra/compose/docker-compose.dev.yml` — lokaler Dev-Stack
+  (Orchestrator + Cockpit + Postgres + ClickHouse + MinIO).
+- `.github/workflows/` — pytest, metric-contract-validate, openapi-validate
+  (Spectral).

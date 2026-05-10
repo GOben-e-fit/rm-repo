@@ -1,0 +1,25 @@
+name: monthly_recurring_revenue
+display_name: Monthly Recurring Revenue
+description: Sum of normalized monthly subscription revenue at month-end across active customers.
+owner: cfo@example.com
+domain: finance
+unit: EUR
+granularity: month
+direction: up_is_favorable
+dbt_model: marts_finance.fct_mrr_monthly
+expression: SUM(mrr_eur)
+filter: active = true
+target:
+  value: 1200000
+  tolerance_pct: 10
+data_classification: confidential
+compliance_tags:
+  - GDPR.none
+  - SOX.relevant
+refresh_cron: "0 2 * * *"
+anomaly:
+  method: stl_zscore
+  threshold: 3.0
+depends_on:
+  - active_customer_count
+  - average_revenue_per_account

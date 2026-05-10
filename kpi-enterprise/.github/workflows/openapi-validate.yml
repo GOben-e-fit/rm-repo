@@ -1,0 +1,20 @@
+name: openapi-validate
+on:
+  push:
+    paths:
+      - "kpi-enterprise/api/openapi.v1.yaml"
+      - ".github/workflows/openapi-validate.yml"
+  pull_request:
+    paths:
+      - "kpi-enterprise/api/openapi.v1.yaml"
+      - ".github/workflows/openapi-validate.yml"
+
+jobs:
+  spectral:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Spectral
+        run: npm install -g @stoplight/spectral-cli@6
+      - name: Lint OpenAPI
+        run: spectral lint kpi-enterprise/api/openapi.v1.yaml --fail-severity warn

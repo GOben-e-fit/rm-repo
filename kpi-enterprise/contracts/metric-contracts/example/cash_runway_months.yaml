@@ -1,0 +1,24 @@
+name: cash_runway_months
+display_name: Cash Runway (Months)
+description: Months of operations covered by current cash at the rolling 3-month average burn rate.
+owner: cfo@example.com
+domain: finance
+unit: count
+granularity: week
+direction: up_is_favorable
+dbt_model: marts_finance.fct_cash_position_weekly
+expression: cash_eur / NULLIF(rolling_3m_avg_burn_eur, 0)
+target:
+  value: 18
+  tolerance_pct: 25
+data_classification: confidential
+compliance_tags:
+  - GDPR.none
+  - SOX.relevant
+refresh_cron: "0 4 * * *"
+anomaly:
+  method: robust_z
+  threshold: 2.5
+depends_on:
+  - cash_position
+  - operating_burn

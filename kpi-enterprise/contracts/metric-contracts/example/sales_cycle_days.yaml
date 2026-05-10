@@ -1,0 +1,23 @@
+name: sales_cycle_days
+display_name: Average Sales Cycle (Days)
+description: Mean number of days from opportunity creation to closed-won state, last 90 days.
+owner: cro@example.com
+domain: sales
+unit: days
+granularity: week
+direction: down_is_favorable
+dbt_model: marts_sales.fct_opportunities_won_90d
+expression: AVG(EXTRACT(EPOCH FROM (closed_at - created_at)) / 86400.0)
+filter: stage = 'closed_won'
+target:
+  value: 45
+  tolerance_pct: 30
+data_classification: internal
+compliance_tags:
+  - GDPR.contains_personal_links
+refresh_cron: "30 5 * * *"
+anomaly:
+  method: stl_zscore
+  threshold: 2.5
+depends_on:
+  - opportunity_count_won

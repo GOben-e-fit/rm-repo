@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kpi.medialine.app/schemas/metric-contract/v1",
+  "title": "KPI Metric Contract v1",
+  "description": "Versioned, tenant-scoped definition of a single KPI. Each contract is a YAML file under contracts/metric-contracts/<tenant>/<name>.yaml and is mirrored to the Postgres `metric_definitions` table at promotion time. CI enforces this schema as release-blocking.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "display_name",
+    "owner",
+    "domain",
+    "unit",
+    "granularity",
+    "direction",
+    "expression",
+    "data_classification"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{2,63}$",
+      "description": "Snake_case stable identifier."
+    },
+    "display_name": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "description": { "type": "string", "maxLength": 2000 },
+    "owner": {
+      "type": "string",
+      "format": "email",
+      "description": "Single accountable owner email; alias-mailbox allowed."
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["finance", "sales", "marketing", "operations", "supply_chain", "hr", "product", "support", "compliance", "esg", "tbd"]
+    },
+    "unit": {
+      "type": "string",
+      "enum": ["EUR", "USD", "CHF", "GBP", "percent", "ratio", "count", "days", "hours", "minutes", "seconds", "score"]
+    },
+    "granularity": {
+      "type": "string",
+      "enum": ["minute", "hour", "day", "week", "month", "quarter", "year"]
+    },
+    "direction": {
+      "type": "string",
+      "enum": ["up_is_favorable", "down_is_favorable", "neutral"]
+    },
+    "dbt_model": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
+      "description": "Schema-qualified dbt model name, e.g. `marts_finance.fct_mrr_monthly`."
+    },
+    "expression": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SQL expression evaluated against the dbt_model row set."
+    },
+    "filter": { "type": "string", "description": "Optional SQL WHERE-clause body." },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "tolerance_pct"],
+      "properties": {
+        "value": { "type": "number" },
+        "tolerance_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "data_classification": {
+      "type": "string",
+      "enum": ["public", "internal", "confidential", "pii"]
+    },
+    "compliance_tags": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9_]+\\.[A-Za-z0-9_]+$" },
+      "uniqueItems": true,
+      "description": "e.g. `GDPR.none`, `SOX.relevant`, `EUAI.high_risk_art27`."
+    },
+    "refresh_cron": {
+      "type": "string",
+      "pattern": "^([0-9*/,-]+\\s+){4}[0-9*/,-]+$",
+      "description": "Standard 5-field cron expression."
+    },
+    "anomaly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "threshold"],
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": ["stl_zscore", "robust_z", "prophet_residual", "isolation_forest"]
+        },
+        "threshold": { "type": "number", "minimum": 0 }
+      }
+    },
+    "external_llm_allowed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Permit external LLM use during agent calculations on this metric. Default false; only set true when classification ∈ {public, anonymized}."
+    },
+    "depends_on": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,63}$" },
+      "uniqueItems": true,
+      "description": "Other metric `name`s this metric depends on (driver tree wiring hint)."
+    }
+  }
+}

@@ -1,0 +1,98 @@
+# Local developer stack for KPI Enterprise Mining.
+# Brings up: agents-orchestrator (FastAPI :8000) + kpi-mining (Nginx :8080)
+# + minimal dependency stand-ins (Postgres, ClickHouse, MinIO).
+#
+# Usage:
+#   docker compose -f infra/compose/docker-compose.dev.yml up -d
+# Then:
+#   open http://localhost:8080/        — cockpit
+#   open http://localhost:8000/docs   — orchestrator API
+#
+# This file is independent of the DGX runtime overlay
+# (`docker-compose.kpi-mining.override.yml`) and does NOT replace it.
+services:
+  agents-orchestrator:
+    build:
+      context: ../../agents/orchestrator
+      dockerfile: Dockerfile
+    image: kpi-enterprise/agents-orchestrator:dev
+    container_name: kpi-agents-orchestrator
+    ports:
+      - "8000:8000"
+    environment:
+      KPI_AUTH_MODE: demo
+      KPI_DEFAULT_TENANT: tnt_demo
+      KPI_CORS_ORIGINS: "http://localhost:8080,http://localhost:5173"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import httpx;import sys;sys.exit(0 if httpx.get('http://127.0.0.1:8000/health',timeout=3).status_code==200 else 1)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  kpi-mining:
+    build:
+      context: ../../apps/kpi-mining
+      dockerfile: Dockerfile
+    image: kpi-enterprise/kpi-mining:dev
+    container_name: kpi-mining-cockpit
+    ports:
+      - "8080:80"
+    depends_on:
+      agents-orchestrator:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: kpi-postgres
+    environment:
+      POSTGRES_USER: kpi
+      POSTGRES_PASSWORD: kpi_dev
+      POSTGRES_DB: kpi
+    volumes:
+      - kpi-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kpi -d kpi"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8-alpine
+    container_name: kpi-clickhouse
+    environment:
+      CLICKHOUSE_USER: kpi
+      CLICKHOUSE_PASSWORD: kpi_dev
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - kpi-ch:/var/lib/clickhouse
+    ulimits:
+      nofile: { soft: 262144, hard: 262144 }
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:RELEASE.2025-02-07T00-00-00Z
+    container_name: kpi-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: kpi
+      MINIO_ROOT_PASSWORD: kpi_dev_change_me
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - kpi-minio:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  kpi-pg:
+  kpi-ch:
+  kpi-minio:

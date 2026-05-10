@@ -1,0 +1,24 @@
+name: net_promoter_score
+display_name: Net Promoter Score
+description: NPS = % Promoters (9-10) minus % Detractors (0-6) over last 90 days of survey responses.
+owner: cxo@example.com
+domain: support
+unit: score
+granularity: month
+direction: up_is_favorable
+dbt_model: marts_support.fct_nps_responses_rolling_90d
+expression: |
+  100.0 * (
+    SUM(CASE WHEN score >= 9 THEN 1 ELSE 0 END)
+    - SUM(CASE WHEN score <= 6 THEN 1 ELSE 0 END)
+  ) / NULLIF(COUNT(*), 0)
+target:
+  value: 45
+  tolerance_pct: 20
+data_classification: internal
+compliance_tags:
+  - GDPR.pseudonymous
+refresh_cron: "0 6 * * 1"
+anomaly:
+  method: prophet_residual
+  threshold: 2.0

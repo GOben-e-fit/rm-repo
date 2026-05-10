@@ -1,0 +1,55 @@
+name: orchestrator-tests
+on:
+  push:
+    paths:
+      - "kpi-enterprise/agents/orchestrator/**"
+      - "kpi-enterprise/api/openapi.v1.yaml"
+      - ".github/workflows/orchestrator-tests.yml"
+  pull_request:
+    paths:
+      - "kpi-enterprise/agents/orchestrator/**"
+      - "kpi-enterprise/api/openapi.v1.yaml"
+      - ".github/workflows/orchestrator-tests.yml"
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kpi-enterprise/agents/orchestrator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[test]"
+      - name: Run pytest
+        run: pytest -v
+      - name: Smoke OpenAPI export matches spec endpoints
+        run: |
+          python - <<'PY'
+          import json
+          from app.main import app
+          spec = app.openapi()
+          required = {
+              "/v1/tenants",
+              "/v1/sources",
+              "/v1/datasets",
+              "/v1/metric-definitions",
+              "/v1/kpi-candidates",
+              "/v1/kpi-observations",
+              "/v1/driver-trees",
+              "/v1/insights",
+              "/v1/briefings",
+              "/v1/agent-runs",
+              "/v1/benchmarks",
+              "/v1/webhooks",
+          }
+          missing = required - set(spec["paths"].keys())
+          assert not missing, f"missing routes: {missing}"
+          print("openapi route coverage OK", len(spec["paths"]), "paths")
+          PY

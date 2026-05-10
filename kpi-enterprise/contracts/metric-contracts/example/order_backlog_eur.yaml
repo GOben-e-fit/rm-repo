@@ -1,0 +1,21 @@
+name: order_backlog_eur
+display_name: Order Backlog (EUR)
+description: Outstanding confirmed customer order value not yet fulfilled.
+owner: coo@example.com
+domain: operations
+unit: EUR
+granularity: day
+direction: neutral
+dbt_model: marts_ops.fct_open_orders_daily
+expression: SUM(open_amount_eur)
+filter: status IN ('confirmed', 'in_production', 'awaiting_shipment')
+target:
+  value: 4500000
+  tolerance_pct: 25
+data_classification: confidential
+compliance_tags:
+  - GDPR.none
+refresh_cron: "0 1 * * *"
+anomaly:
+  method: isolation_forest
+  threshold: 1.0

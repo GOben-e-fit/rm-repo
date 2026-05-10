@@ -197,6 +197,9 @@ class KpiCandidate(BaseModel):
     proposed_sql: str | None = None
     suggested_unit: str | None = None
     suggested_granularity: Granularity | None = None
+    suggested_direction: Direction | None = None
+    suggested_domain: str | None = None
+    template_id: str | None = None
     status: Literal["new", "in_review", "accepted", "rejected"] = "new"
 
 
@@ -341,6 +344,7 @@ class AgentRun(BaseModel):
     evidence_bundle: str | None = None
     approval: AgentApproval = Field(default_factory=AgentApproval)
     rollback_snapshot: str | None = None
+    outputs: dict[str, Any] | None = None
 
 
 class EvidenceBundle(BaseModel):

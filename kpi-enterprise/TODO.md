@@ -45,19 +45,22 @@
 
 ## Phase v2 — Echte Datenquellen + KPI-Mining (CP-104 → CP-110, W5–W9)
 
-- [ ] **CP-104** `agents-orchestrator` Service-Skeleton (FastAPI :8000, OpenAPI v1)
+- [x] **CP-104a** `agents-orchestrator` Service-Skeleton (FastAPI :8000, OpenAPI v1) — 20/20 Tests
+- [x] **CP-104b** Postgres-Schema + RLS-Migrations + Runner — `infra/postgres/`
+- [x] **CP-104c** dbt-Projekt-Skelett mit 5 Mart-Modellen + Data Contracts — `contracts/dbt/`
 - [ ] **CP-105** Quell-Onboarding (Airbyte für strukturiert, Nimble + Crawl4AI für Web)
-- [ ] **CP-106** Metric Store Schema in ClickHouse + dbt-Modelle
+- [ ] **CP-106** Metric Store Schema in ClickHouse + dbt-Modelle in PROD landen
 - [ ] **CP-107** Trino-Federation für Tenant-Sources (read-only erst)
 - [ ] **CP-108** OpenMetadata-Lineage für Metric-Definitionen + Sources
 - [ ] **CP-109** Hybrid-Search (OpenSearch BM25 + Qdrant Vector) für Semantic-Mapper
-- [ ] **CP-110** Tenant-Isolation-Negative-Tests (analog CP-073) für KPI-Pfade
+- [ ] **CP-110** Tenant-Isolation-Negative-Tests (analog CP-073) für KPI-Pfade — Orchestrator-Layer 6/6 grün, DB-Layer steht aus
 
 **Phase-Akzeptanz:** 1 Pilot-Mandant zeigt 25+ echte KPIs, Driver-Tree mit ≥ 30 Knoten, mind. 1 Anomalie pro Woche detektiert.
 
 ## Phase v3 — Autonome Agenten + HITL (CP-111 → CP-120, W10–W13)
 
-- [ ] **CP-111** KPI-Miner-Agent (Schema-Profiling → Candidate-KPIs)
+- [x] **CP-111a** KPI-Miner-Agent v0 (heuristisch, deterministisch, kein LLM) — `agents/kpi-discovery/`, 10/10 Tests, im Orchestrator integriert
+- [ ] **CP-111b** KPI-Miner-Agent v1 (LiteLLM-Ergänzung mit Policy-Gate, anonymisierte Cloud-Calls für Naming-Hints)
 - [ ] **CP-112** Driver-Tree-Agent + Canvas
 - [ ] **CP-113** Anomaly/RCA-Agent (Robust-Z, STL, Causal-Hint)
 - [ ] **CP-114** C-Level-Briefing-Agent (Was/Warum/Was-tun/Owner/Evidenz)

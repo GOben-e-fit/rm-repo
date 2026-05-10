@@ -1,0 +1,65 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: >
+      Bronze-layer raw tables landed by Airbyte / Crawl4AI / file uploads.
+      Tenant-scoping is enforced at the Postgres role level via Trino
+      catalog-mapping; dbt models read these as-is.
+    tables:
+      - name: subscriptions
+        description: Per-customer subscription state with monthly recurring charge.
+        columns:
+          - name: subscription_id
+            description: Stable subscription identifier.
+            tests: [not_null, unique]
+          - name: customer_id
+            description: Owning customer.
+            tests: [not_null]
+          - name: mrr_eur
+            description: Monthly recurring charge at month-end, EUR.
+            tests: [not_null]
+          - name: active
+            description: Whether the subscription is currently active.
+          - name: as_of_month
+            description: Reporting month (1st-of-month).
+            tests: [not_null]
+      - name: invoices
+        description: Issued invoices with revenue and cost amounts.
+        columns:
+          - name: invoice_id
+            tests: [not_null, unique]
+          - name: customer_id
+          - name: total_amount
+          - name: cost_amount
+          - name: created_at
+            tests: [not_null]
+      - name: opportunities
+        description: Sales pipeline opportunity rows.
+        columns:
+          - name: opportunity_id
+            tests: [not_null, unique]
+          - name: stage
+          - name: created_at
+          - name: closed_at
+      - name: orders
+        description: Customer orders with open backlog amount.
+        columns:
+          - name: order_id
+            tests: [not_null, unique]
+          - name: status
+          - name: open_amount
+      - name: nps_responses
+        description: NPS survey responses with promoter score 0-10.
+        columns:
+          - name: response_id
+            tests: [not_null, unique]
+          - name: nps_score
+            tests:
+              - not_null
+              - accepted_values:
+                  values: [0,1,2,3,4,5,6,7,8,9,10]
+                  quote: false
+          - name: submitted_at
+            tests: [not_null]

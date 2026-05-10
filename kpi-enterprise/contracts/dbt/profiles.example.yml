@@ -1,0 +1,22 @@
+# Local dev profile for the kpi_enterprise dbt project.
+# Copy to ~/.dbt/profiles.yml or set DBT_PROFILES_DIR to this folder.
+# Production profiles live in the secret store (sops + age).
+
+kpi_enterprise:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('KPI_PG_HOST', 'localhost') }}"
+      port: "{{ env_var('KPI_PG_PORT', 5432) | int }}"
+      user: "{{ env_var('KPI_PG_USER', 'kpi') }}"
+      password: "{{ env_var('KPI_PG_PASSWORD', 'kpi_dev') }}"
+      dbname: "{{ env_var('KPI_PG_DB', 'kpi') }}"
+      schema: kpi
+      threads: 4
+      keepalives_idle: 0
+      sslmode: prefer
+    test:
+      type: duckdb
+      path: ":memory:"
+      threads: 2

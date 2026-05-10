@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse
 from . import __version__
 from .auth import CurrentTenant
 from .config import settings
+from .discovery_bridge import run_discovery
 from .models import (
     AgentRun,
     AgentRunRef,
@@ -236,8 +237,12 @@ def create_app() -> FastAPI:
         tags=["metrics"],
     )
     def trigger_discovery(payload: DiscoveryRunRequest, tenant: CurrentTenant) -> AgentRunRef:
-        run = _stub_agent_run(tenant, agent="kpi-discovery")
-        return AgentRunRef(run_id=run["run_id"], status=AgentRunStatus.QUEUED, trace_url=run.get("trace_url"))
+        run = run_discovery(tenant, payload.dataset_ids, payload.scope_hint)
+        return AgentRunRef(
+            run_id=run["run_id"],
+            status=AgentRunStatus(run["status"]),
+            trace_url=run.get("trace_url"),
+        )
 
     @app.post(
         "/v1/kpi-candidates/{candidate_id}/promote",

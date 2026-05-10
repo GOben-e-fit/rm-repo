@@ -742,6 +742,11 @@ components:
         proposed_sql: { type: string }
         suggested_unit: { type: string }
         suggested_granularity: { type: string }
+        suggested_direction:
+          type: string
+          enum: [up_is_favorable, down_is_favorable, neutral]
+        suggested_domain: { type: string }
+        template_id: { type: string }
         status:
           type: string
           enum: [new, in_review, accepted, rejected]
@@ -914,6 +919,10 @@ components:
             approvers: { type: array, items: { type: string } }
             granted: { type: boolean }
         rollback_snapshot: { type: string, nullable: true }
+        outputs:
+          type: object
+          additionalProperties: true
+          description: Agent-specific structured outputs (e.g. discovery counts).
       required: [run_id, tenant_id, agent, status]
 
     EvidenceBundle:

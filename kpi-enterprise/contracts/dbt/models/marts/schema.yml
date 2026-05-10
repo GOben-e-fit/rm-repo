@@ -1,0 +1,96 @@
+version: 2
+
+models:
+  - name: fct_mrr_monthly
+    description: Monthly MRR aggregate. Source of truth for finance.mrr metric contract.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: as_of_month
+        data_type: timestamp
+        description: First-of-month timestamp.
+        constraints:
+          - type: not_null
+        tests: [unique]
+      - name: mrr_eur
+        data_type: numeric
+        description: Sum of active subscription MRR in EUR.
+        constraints:
+          - type: not_null
+      - name: active_subscription_count
+        data_type: integer
+        description: Distinct active subscriptions in the month.
+        constraints:
+          - type: not_null
+
+  - name: fct_revenue_monthly
+    description: Monthly invoiced revenue, COGS and gross margin. Powers finance.revenue + finance.cogs metric contracts.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: invoice_month
+        data_type: timestamp
+        constraints: [{type: not_null}]
+        tests: [unique]
+      - name: revenue_eur
+        data_type: numeric
+        constraints: [{type: not_null}]
+      - name: cogs_eur
+        data_type: numeric
+        constraints: [{type: not_null}]
+      - name: gross_margin_eur
+        data_type: numeric
+      - name: gross_margin_pct
+        data_type: numeric
+
+  - name: fct_sales_cycle_weekly
+    description: Weekly average sales cycle in days, derived from closed opportunities.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: week_start
+        data_type: timestamp
+        constraints: [{type: not_null}]
+        tests: [unique]
+      - name: avg_cycle_days
+        data_type: numeric
+      - name: won_opportunities
+        data_type: integer
+      - name: closed_opportunities
+        data_type: integer
+
+  - name: fct_order_backlog_daily
+    description: Daily snapshot of open order backlog in EUR + order count.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: as_of_date
+        data_type: date
+        constraints: [{type: not_null}]
+      - name: backlog_eur
+        data_type: numeric
+      - name: backlog_order_count
+        data_type: integer
+
+  - name: fct_nps_monthly
+    description: Monthly NPS computed from raw survey responses.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: month_start
+        data_type: timestamp
+        constraints: [{type: not_null}]
+        tests: [unique]
+      - name: promoters
+        data_type: integer
+      - name: detractors
+        data_type: integer
+      - name: responses
+        data_type: integer
+      - name: nps_score
+        data_type: numeric

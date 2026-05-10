@@ -74,12 +74,22 @@ Codex-Skills unter `C:\Users\info\.codex\skills\`:
 
 ## Implementiert (lokal lauffähig)
 
-- `agents/orchestrator/` — FastAPI-Skelett mit allen v1-Routen,
-  In-Memory-Tenant-Store, Demo-Auth via `X-Tenant-Id`. Tests:
-  17/17 grün (smoke + tenant-deny).
-  `pytest -v` aus dem Verzeichnis.
+- `agents/orchestrator/` — FastAPI mit allen v1-Routen,
+  In-Memory-Tenant-Store, Demo-Auth via `X-Tenant-Id`. **Tests: 20/20 grün**
+  (smoke + tenant-deny + discovery-integration).
+- `agents/kpi-discovery/` — heuristischer Discovery-Agent,
+  14 Templates über 6 Domains (finance/sales/ops/support/hr/marketing),
+  deterministisch, **kein LLM**. **Tests: 10/10 grün**.
+  Im Orchestrator unter POST `/v1/kpi-candidates` aktiv: triggert
+  Discovery synchron und persistiert Kandidaten in den Tenant-Store.
 - `contracts/metric-contracts/` — JSON-Schema + 5 Beispiel-Contracts
-  (MRR, Cash Runway, NPS, Sales Cycle, Order Backlog) + Validator-Skript.
+  (MRR, Cash Runway, NPS, Sales Cycle, Order Backlog) + Validator-Skript
+  (5/5 valid).
+- `contracts/dbt/` — dbt-Projekt-Skelett mit 5 Staging- + 5 Mart-Modellen
+  (contract-enforced) und Quellen-Definition. Postgres- und DuckDB-Profile.
+- `infra/postgres/migrations/0001_init.sql` — komplette DDL für alle
+  Tenant-Tabellen + RLS-Policies + Audit-Tabelle. Idempotent. Runner:
+  `infra/postgres/migrate.py` (psycopg oder psql-Fallback).
 - `infra/compose/docker-compose.dev.yml` — lokaler Dev-Stack
   (Orchestrator + Cockpit + Postgres + ClickHouse + MinIO).
 - `.github/workflows/` — pytest, metric-contract-validate, openapi-validate

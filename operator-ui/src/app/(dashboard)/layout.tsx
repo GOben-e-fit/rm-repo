@@ -7,6 +7,7 @@ const NAV = [
   { href: '/litellm', label: 'LiteLLM' },
   { href: '/cloudflare', label: 'Cloudflare' },
   { href: '/containers', label: 'Container' },
+  { href: '/voice', label: 'Voice / Telefonie' },
   { href: '/audits', label: 'Audits' },
 ];
 
